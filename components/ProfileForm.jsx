@@ -1,7 +1,7 @@
 "use client";
 
-import { createProfile, getProfileById } from "@/app/actions/profile.actions";
-import { useEffect, useState } from "react";
+import { createProfile } from "@/app/actions/profile.actions";
+import { useState } from "react";
 
 export default function ProfileForm() {
   const [profile, setProfile] = useState({
@@ -11,13 +11,40 @@ export default function ProfileForm() {
     branch: "",
     skills: "",
   });
+
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
-  // for testing
-  async function handleSubmit(params) {
-    // await createProfile(profile);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const result = await createProfile(profile);
+
+      if (result.success) {
+        alert("Profile saved successfully!");
+        setProfile({
+          name: "",
+          email: "",
+          college: "",
+          branch: "",
+          skills: "",
+        });
+      } else {
+        alert(result.error || "Failed to save profile");
+      }
+    } catch (error) {
+      console.error("Profile Save Error:", error);
+      alert("Something went wrong while saving profile");
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       {[
@@ -44,9 +71,10 @@ export default function ProfileForm() {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-700 transition rounded-lg py-2 font-semibold"
+        disabled={loading}
+        className="w-full bg-blue-600 hover:bg-blue-700 transition rounded-lg py-2 font-semibold disabled:opacity-50"
       >
-        SAVE PROFILE
+        {loading ? "Saving..." : "SAVE PROFILE"}
       </button>
     </form>
   );
